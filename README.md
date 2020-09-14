@@ -45,5 +45,5 @@ See UltiConfig in action!
 
 Initial release.
 
-Download PAL version [ulticonfig-v1.0-pal.zip](releases/ulticonfig-v1.0-pal.zip).
-Download NTSC [ulticonfig-v1.0-ntsc.zip](releases/ulticonfig-v1.0-ntsc.zip).
+Download PAL version [ulticonfig-v1.0-pal.zip](releases/ulticonfig-v1.0-pal.zip)
+or NTSC version [ulticonfig-v1.0-ntsc.zip](releases/ulticonfig-v1.0-ntsc.zip).
