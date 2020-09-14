@@ -28,7 +28,7 @@ OBJECTS :=  $(PROGRAM_BASE).o
 # Set libs
 LIBRARY=miniwedge.lib sj20-$(MODEL).lib
 
-.PHONY: clean
+.PHONY: clean zip
 
 $(PROGRAM).$(PROGRAM_SUFFIX): $(PROGRAM)
 	exomizer sfx 4608 -t 20 -o $@ -q $(PROGRAM)
@@ -36,8 +36,12 @@ $(PROGRAM).$(PROGRAM_SUFFIX): $(PROGRAM)
 $(PROGRAM): $(CONFIG) $(OBJECTS)
 	$(LD) $(LDFLAGS) -o $@ -S $(START_ADDR) $(OBJECTS) $(LIBRARY)
 
+zip:
+	zip ulticonfig-v1.0-$(MODEL).zip ulticonfig.prg
+
 clean:
 	$(RM) $(OBJECTS)
 	$(RM) $(PROGRAM).$(PROGRAM_SUFFIX)
 	$(RM) $(PROGRAM)
+	$(RM) *.zip
 	$(RM) *~
