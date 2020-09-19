@@ -237,6 +237,8 @@ mainloop:
 :       ldx     config+6
         beq     :+
         jsr     miniwedge_install
+        lda     #8
+        sta     DEVNUM
         jsr     PRNTCRLF
         lda     #<miniwedge_banner
         ldy     #>miniwedge_banner
