@@ -244,7 +244,9 @@ mainloop:
         ldy     #>miniwedge_banner
         jsr     PTRSTR
         jsr     fkey_install
-:       jmp     READY                   ; do "READY." warm start
+:       ldx     #$FB
+        txs
+        jmp     READY
 
 
 .proc invert_selection
