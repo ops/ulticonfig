@@ -15,7 +15,7 @@ INITBA    := $E3A4
 INITVCTRS := $E45B
 FREMSG    := $E404
 INITSK    := $E518
-INITMEM   := $FD9B
+INITMEM   := $FD8D
 FRESTOR   := $FD52
 INITVIA   := $FDF9
 
@@ -122,9 +122,6 @@ PETSCII_QUOTE = 34
         jsr     INITVIA                 ; initialise I/O registers
         jsr     INITSK                  ; initialise hardware
 
-        jsr     INITVCTRS               ; initialise BASIC vector table
-        jsr     INITBA                  ; initialise BASIC RAM locations
-
         lda     #<banner1
         ldy     #>banner1
         jsr     PTRSTR
@@ -224,9 +221,13 @@ mainloop:
         lda     #$00
         sta     ULTIMEM_CONTROL
 
-        lda     #$00
+        ; Perform full reset
+        sei
         jsr     INITMEM                 ; initialise and test RAM
+        jsr     FRESTOR                 ; restore default I/O vectors
+        jsr     INITVIA                 ; initialise I/O registers
         jsr     INITSK                  ; initialise hardware
+        jsr     INITVCTRS               ; initialise BASIC vector table
         jsr     INITBA                  ; initialise BASIC RAM locations
         jsr     FREMSG
 
@@ -389,9 +390,10 @@ banner4:
 
         .segment "IO_2_3_CODE"
 
-        jsr     sj20_init
+        jsr     fkey_install
         jsr     miniwedge_install
         lda     #<miniwedge_banner
         ldy     #>miniwedge_banner
         jsr     PTRSTR
+        jsr     sj20_init
         rts
