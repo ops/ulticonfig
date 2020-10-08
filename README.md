@@ -45,3 +45,4 @@ See UltiConfig in action!
 
 Download PAL version [ulticonfig-v1.1-pal.zip](releases/ulticonfig-v1.1-pal.zip)
 or NTSC version [ulticonfig-v1.1-ntsc.zip](releases/ulticonfig-v1.1-ntsc.zip).
+
