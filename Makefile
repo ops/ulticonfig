@@ -37,7 +37,7 @@ $(PROGRAM): $(CONFIG) $(OBJECTS)
 	$(LD) $(LDFLAGS) -o $@ -S $(START_ADDR) $(OBJECTS) $(LIBRARY)
 
 zip:
-	zip ulticonfig-v1.0-$(MODEL).zip ulticonfig.prg
+	zip ulticonfig-v1.1-$(MODEL).zip ulticonfig.prg
 
 clean:
 	$(RM) $(OBJECTS)
