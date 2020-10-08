@@ -39,11 +39,9 @@ See UltiConfig in action!
 
 [![VIDEO](yt.png)](https://www.youtube.com/watch?v=dYfJjZB2K4U)
 
-# Releases
+# Downloads
 
-## Release v1.0 (2020-09-14)
+## Release v1.1 (2020-10-08)
 
-Initial release.
-
-Download PAL version [ulticonfig-v1.0-pal.zip](releases/ulticonfig-v1.0-pal.zip)
-or NTSC version [ulticonfig-v1.0-ntsc.zip](releases/ulticonfig-v1.0-ntsc.zip).
+Download PAL version [ulticonfig-v1.1-pal.zip](releases/ulticonfig-v1.1-pal.zip)
+or NTSC version [ulticonfig-v1.1-ntsc.zip](releases/ulticonfig-v1.1-ntsc.zip).
