@@ -3,6 +3,8 @@
 ;;;
 ;;; September 2020 ops
 ;;;
+;;; Last modification October 2020
+;;;
 
         .include "cbm_kernal.inc"
         .include "vic20.inc"
@@ -122,18 +124,9 @@ PETSCII_QUOTE = 34
         jsr     INITVIA                 ; initialise I/O registers
         jsr     INITSK                  ; initialise hardware
 
-        lda     #<banner1
-        ldy     #>banner1
-        jsr     PTRSTR
-        lda     #<banner2
-        ldy     #>banner2
-        jsr     PTRSTR
-        lda     #<banner3
-        ldy     #>banner3
-        jsr     PTRSTR
-        lda     #<banner4
-        ldy     #>banner4
-        jsr     PTRSTR
+        lda     #<banner
+        ldy     #>banner
+        jsr     print_string
 
 mainloop:
         jsr     print_config
@@ -284,6 +277,21 @@ mainloop:
 .endproc
 
 
+.proc print_string
+        sta     PTR1
+        sty     PTR1+1
+        ldy     #$00
+:       lda     (PTR1),y
+        beq     @out
+        jsr     CHROUT
+        iny
+        bne     :-
+        inc     PTR1+1
+        bne     :-
+@out:   rts
+.endproc
+
+
 .proc copydata
         lda     #<__IO_2_3_CODE_LOAD__         ; Source pointer
         sta     PTR1
@@ -358,32 +366,29 @@ keydef_f8:
 
 ;------------------------------------------------------------------------------
 
-banner1:
+banner:
         .byte 14,RVS_ON,COL_BLUE
         .byte 176,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,174
         .byte 221,COL_RED,"     ULTICONFIG     ",COL_BLUE,221
         .byte 173,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,189
-        .byte 13,13,COL_BLUE,0
+        .byte 13,13,COL_BLUE
 
-banner2:
         .byte "  ",176,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,174,13
         .byte "  ",221,"    Select      ",221,13
         .byte "  ",221," Configuration: ",221,13
         .byte "  ",171,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,179,13
-        .byte "  ",221,"                ",221,13,0
+        .byte "  ",221,"                ",221,13
 
-banner3:
         .byte "  ",221," ",COL_RED,182,RVS_ON,"F1",RVS_OFF,161,COL_BLACK,"RAM123 [ ] ",COL_BLUE,221,13
         .byte "  ",221," ",COL_RED,182,RVS_ON,"F2",RVS_OFF,161,COL_BLACK,"BLK1   [ ] ",COL_BLUE,221,13
         .byte "  ",221," ",COL_RED,182,RVS_ON,"F3",RVS_OFF,161,COL_BLACK,"BLK2   [ ] ",COL_BLUE,221,13
         .byte "  ",221," ",COL_RED,182,RVS_ON,"F4",RVS_OFF,161,COL_BLACK,"BLK3   [ ] ",COL_BLUE,221,13
         .byte "  ",221," ",COL_RED,182,RVS_ON,"F5",RVS_OFF,161,COL_BLACK,"BLK5   [ ] ",COL_BLUE,221,13
-        .byte "  ",221," ",COL_RED,182,RVS_ON,"F6",RVS_OFF,161,COL_BLACK,"IO2&3  [ ] ",COL_BLUE,221,13
+        .byte "  ",221," ",COL_RED,182,RVS_ON,"F6",RVS_OFF,161,COL_BLACK,"I/O23  [ ] ",COL_BLUE,221,13
         .byte "  ",221," ",COL_RED,182,RVS_ON,"F7",RVS_OFF,161,COL_BLACK,"Wedge  [ ] ",COL_BLUE,221,13
         .byte "  ",221," ",COL_RED,182,RVS_ON,"F8",RVS_OFF,161,COL_BLACK,"SJ20   [ ] ",COL_BLUE,221,13
-        .byte "  ",221,"                ",221,13,0
+        .byte "  ",221,"                ",221,13
 
-banner4:
         .byte "  ",171,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,179,13
         .byte "  ",221," Press ",COL_RED, 182,RVS_ON, "RETURN", RVS_OFF,161,COL_BLUE," ",221,13
         .byte "  ",221,"   to reboot    ",221,13
