@@ -12,7 +12,7 @@ MODEL ?= pal
 CONFIG = $(PROGRAM_BASE).cfg
 
 AS := ca65
-LD := ld65
+CC := ld65
 
 START_ADDR = 4608
 
@@ -20,21 +20,20 @@ START_ADDR = 4608
 ASFLAGS += -t vic20 -g
 
 # Additional linker flags and options.
-LDFLAGS = -C $(CONFIG) -Llib
+LDFLAGS = -C $(CONFIG) -S $(START_ADDR) -Llib
 
 # Set OBJECTS
-OBJECTS :=  $(PROGRAM_BASE).o
+OBJECTS := $(PROGRAM_BASE).o
 
 # Set libs
-LIBRARY=miniwedge.lib sj20-$(MODEL).lib
+LDLIBS=miniwedge.lib sj20-$(MODEL).lib
 
 .PHONY: clean zip
 
 $(PROGRAM).$(PROGRAM_SUFFIX): $(PROGRAM)
-	exomizer sfx 4608 -t 20 -o $@ -q $(PROGRAM)
+	exomizer sfx $(START_ADDR) -t 20 -o $@ -q $(PROGRAM)
 
-$(PROGRAM): $(CONFIG) $(OBJECTS)
-	$(LD) $(LDFLAGS) -o $@ -S $(START_ADDR) $(OBJECTS) $(LIBRARY)
+$(PROGRAM): $(OBJECTS)
 
 zip:
 	zip ulticonfig-v1.1-$(MODEL).zip ulticonfig.prg
