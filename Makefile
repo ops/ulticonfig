@@ -44,7 +44,7 @@ $(PROGRAM).$(PROGRAM_SUFFIX): $(PROGRAM)
 $(PROGRAM): $(OBJECTS)
 
 zip:
-	zip ulticonfig-v1.1-$(MODEL).zip ulticonfig.prg
+	zip ulticonfig-v1.2-$(MODEL).zip ulticonfig.prg
 
 clean:
 	$(RM) $(OBJECTS)
