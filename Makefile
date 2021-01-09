@@ -18,6 +18,9 @@ START_ADDR = 4608
 
 # Additional assembler flags and options.
 ASFLAGS += -t vic20 -g
+ifeq ($(eload),1)
+  ASFLAGS += -DELOAD
+endif
 
 # Additional linker flags and options.
 LDFLAGS = -C $(CONFIG) -S $(START_ADDR) -Llib
@@ -26,7 +29,12 @@ LDFLAGS = -C $(CONFIG) -S $(START_ADDR) -Llib
 OBJECTS := $(PROGRAM_BASE).o
 
 # Set libs
-LDLIBS=miniwedge.lib sj20-$(MODEL).lib
+LDLIBS=miniwedge.lib
+ifeq ($(eload),1)
+  LDLIBS += eload-$(MODEL).lib
+else
+  LDLIBS += sj20-$(MODEL).lib
+endif
 
 .PHONY: clean zip
 

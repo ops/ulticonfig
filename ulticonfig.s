@@ -62,6 +62,7 @@ PETSCII_QUOTE = 34
         .import fkey_install
 
         .import sj20_init
+        .import _eload_init
 
         .import __IO_2_3_SIZE__
         .import __IO_2_3_CODE_LOAD__
@@ -76,7 +77,7 @@ PETSCII_QUOTE = 34
         .export keydef_f7
         .export keydef_f8
 
-        .segment "CODE"
+        .segment "MENUCODE"
 
         sei
         lda     $9f55           ; Re-enable the UltiMem registers
@@ -226,7 +227,11 @@ mainloop:
 
         ldx     config+7
         beq     :+
+        .ifdef ELOAD
+        jsr     _eload_init
+        .else
         jsr     sj20_init
+        .endif
 :       ldx     config+6
         beq     :+
         jsr     miniwedge_install
@@ -331,6 +336,59 @@ config:
 
 ;------------------------------------------------------------------------------
 
+banner:
+        .byte 14,RVS_ON,COL_BLUE
+        .byte 176,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,174
+        .byte 221,COL_RED,"     ULTICONFIG     ",COL_BLUE,221
+        .byte 173,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,189
+        .byte 13,13,COL_BLUE
+
+        .byte "  ",176,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,174,13
+        .byte "  ",221,"    Select      ",221,13
+        .byte "  ",221," Configuration: ",221,13
+        .byte "  ",171,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,179,13
+        .byte "  ",221,"                ",221,13
+
+        .byte "  ",221," ",COL_RED,182,RVS_ON,"F1",RVS_OFF,161,COL_BLACK,"RAM123 [ ] ",COL_BLUE,221,13
+        .byte "  ",221," ",COL_RED,182,RVS_ON,"F2",RVS_OFF,161,COL_BLACK,"BLK1   [ ] ",COL_BLUE,221,13
+        .byte "  ",221," ",COL_RED,182,RVS_ON,"F3",RVS_OFF,161,COL_BLACK,"BLK2   [ ] ",COL_BLUE,221,13
+        .byte "  ",221," ",COL_RED,182,RVS_ON,"F4",RVS_OFF,161,COL_BLACK,"BLK3   [ ] ",COL_BLUE,221,13
+        .byte "  ",221," ",COL_RED,182,RVS_ON,"F5",RVS_OFF,161,COL_BLACK,"BLK5   [ ] ",COL_BLUE,221,13
+        .byte "  ",221," ",COL_RED,182,RVS_ON,"F6",RVS_OFF,161,COL_BLACK,"I/O23  [ ] ",COL_BLUE,221,13
+        .byte "  ",221," ",COL_RED,182,RVS_ON,"F7",RVS_OFF,161,COL_BLACK,"Wedge  [ ] ",COL_BLUE,221,13
+        .byte "  ",221," ",COL_RED,182,RVS_ON,"F8",RVS_OFF,161,COL_BLACK
+        .ifdef ELOAD
+          .byte "ELoad+"
+        .else
+          .byte "SJ20  "
+        .endif
+        .byte " [ ] ",COL_BLUE,221,13
+        .byte "  ",221,"                ",221,13
+
+        .byte "  ",171,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,179,13
+        .byte "  ",221," Press ",COL_RED, 182,RVS_ON, "RETURN", RVS_OFF,161,COL_BLUE," ",221,13
+        .byte "  ",221,"   to reboot    ",221,13
+        .byte "  ",173,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,189
+        .byte COL_RED,0
+
+;------------------------------------------------------------------------------
+
+        .segment "IO_2_3_CODE"
+
+        jsr     fkey_install
+        jsr     miniwedge_install
+        lda     #<miniwedge_banner
+        ldy     #>miniwedge_banner
+        jsr     PTRSTR
+        .ifdef ELOAD
+        jsr     _eload_init
+        .else
+        jsr     sj20_init
+        .endif
+        rts
+
+;------------------------------------------------------------------------------
+
 keydef_f1:
         .byte PETSCII_CR,PETSCII_CRSR_UP,PETSCII_CRSR_UP,"@    ",PETSCII_CRSR_RIGHT,PETSCII_INSERT,PETSCII_INSERT,PETSCII_INSERT,"cd:",255
         .byte 0
@@ -363,46 +421,3 @@ keydef_f7:
         .byte 0
 keydef_f8:
         .byte 0
-
-;------------------------------------------------------------------------------
-
-banner:
-        .byte 14,RVS_ON,COL_BLUE
-        .byte 176,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,174
-        .byte 221,COL_RED,"     ULTICONFIG     ",COL_BLUE,221
-        .byte 173,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,189
-        .byte 13,13,COL_BLUE
-
-        .byte "  ",176,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,174,13
-        .byte "  ",221,"    Select      ",221,13
-        .byte "  ",221," Configuration: ",221,13
-        .byte "  ",171,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,179,13
-        .byte "  ",221,"                ",221,13
-
-        .byte "  ",221," ",COL_RED,182,RVS_ON,"F1",RVS_OFF,161,COL_BLACK,"RAM123 [ ] ",COL_BLUE,221,13
-        .byte "  ",221," ",COL_RED,182,RVS_ON,"F2",RVS_OFF,161,COL_BLACK,"BLK1   [ ] ",COL_BLUE,221,13
-        .byte "  ",221," ",COL_RED,182,RVS_ON,"F3",RVS_OFF,161,COL_BLACK,"BLK2   [ ] ",COL_BLUE,221,13
-        .byte "  ",221," ",COL_RED,182,RVS_ON,"F4",RVS_OFF,161,COL_BLACK,"BLK3   [ ] ",COL_BLUE,221,13
-        .byte "  ",221," ",COL_RED,182,RVS_ON,"F5",RVS_OFF,161,COL_BLACK,"BLK5   [ ] ",COL_BLUE,221,13
-        .byte "  ",221," ",COL_RED,182,RVS_ON,"F6",RVS_OFF,161,COL_BLACK,"I/O23  [ ] ",COL_BLUE,221,13
-        .byte "  ",221," ",COL_RED,182,RVS_ON,"F7",RVS_OFF,161,COL_BLACK,"Wedge  [ ] ",COL_BLUE,221,13
-        .byte "  ",221," ",COL_RED,182,RVS_ON,"F8",RVS_OFF,161,COL_BLACK,"SJ20   [ ] ",COL_BLUE,221,13
-        .byte "  ",221,"                ",221,13
-
-        .byte "  ",171,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,179,13
-        .byte "  ",221," Press ",COL_RED, 182,RVS_ON, "RETURN", RVS_OFF,161,COL_BLUE," ",221,13
-        .byte "  ",221,"   to reboot    ",221,13
-        .byte "  ",173,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,189
-        .byte COL_RED,0
-
-;------------------------------------------------------------------------------
-
-        .segment "IO_2_3_CODE"
-
-        jsr     fkey_install
-        jsr     miniwedge_install
-        lda     #<miniwedge_banner
-        ldy     #>miniwedge_banner
-        jsr     PTRSTR
-        jsr     sj20_init
-        rts
