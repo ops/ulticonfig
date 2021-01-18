@@ -25,6 +25,10 @@ endif
 # Additional linker flags and options.
 LDFLAGS = -C $(CONFIG) -S $(START_ADDR) -Llib
 
+ifeq ($(map),1)
+  LDFLAGS += -m $@.map
+endif
+
 # Set OBJECTS
 OBJECTS := $(PROGRAM_BASE).o
 
@@ -44,11 +48,11 @@ $(PROGRAM).$(PROGRAM_SUFFIX): $(PROGRAM)
 $(PROGRAM): $(OBJECTS)
 
 zip:
-	zip ulticonfig-v1.2-$(MODEL).zip ulticonfig.prg
+	zip ulticonfig-v1.2-$(MODEL).zip $(PROGRAM).prg
 
 clean:
 	$(RM) $(OBJECTS)
 	$(RM) $(PROGRAM).$(PROGRAM_SUFFIX)
 	$(RM) $(PROGRAM)
-	$(RM) *.zip
+	$(RM) *.zip *.map
 	$(RM) *~

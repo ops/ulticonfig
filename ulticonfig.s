@@ -3,7 +3,7 @@
 ;;;
 ;;; September 2020 ops
 ;;;
-;;; Last modification October 2020
+;;; Last modification January 2021
 ;;;
 
         .include "cbm_kernal.inc"
@@ -58,15 +58,24 @@ PETSCII_QUOTE = 34
         .addr   *+2
 
         .import miniwedge_install
+        .import miniwedge_uninstall
         .import miniwedge_banner
         .import fkey_install
+        .import fkey_uninstall
 
         .import sj20_init
-        .import _eload_init
+        .import eload_load
 
-        .import __IO_2_3_SIZE__
-        .import __IO_2_3_CODE_LOAD__
-        .import __IO_2_3_CODE_RUN__
+        .import __IO23_BANK2_CODE_SIZE__
+        .import __IO23_BANK2_CODE_LOAD__
+        .import __IO23_BANK2_CODE_RUN__
+        .import __IO23_BANK6_CODE_SIZE__
+        .import __IO23_BANK6_CODE_LOAD__
+        .import __IO23_BANK6_CODE_RUN__
+
+        ; Used by ELoad+
+        ptr1 = $ae
+        .export ptr1
 
         .export keydef_f1
         .export keydef_f2
@@ -79,10 +88,48 @@ PETSCII_QUOTE = 34
 
         .segment "MENUCODE"
 
+        jmp     main
+
+banner:
+        .byte 14,RVS_ON,COL_BLUE
+        .byte 176,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,174
+        .byte 221,COL_RED,"     ULTICONFIG     ",COL_BLUE,221
+        .byte 173,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,189
+        .byte 13,13,COL_BLUE
+
+        .byte "  ",176,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,174,13
+        .byte "  ",221,"    Select      ",221,13
+        .byte "  ",221," Configuration: ",221,13
+        .byte "  ",171,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,179,13
+        .byte "  ",221,"                ",221,13
+
+        .byte "  ",221," ",COL_RED,182,RVS_ON,"F1",RVS_OFF,161,COL_BLACK,"RAM123 [ ] ",COL_BLUE,221,13
+        .byte "  ",221," ",COL_RED,182,RVS_ON,"F2",RVS_OFF,161,COL_BLACK,"BLK1   [ ] ",COL_BLUE,221,13
+        .byte "  ",221," ",COL_RED,182,RVS_ON,"F3",RVS_OFF,161,COL_BLACK,"BLK2   [ ] ",COL_BLUE,221,13
+        .byte "  ",221," ",COL_RED,182,RVS_ON,"F4",RVS_OFF,161,COL_BLACK,"BLK3   [ ] ",COL_BLUE,221,13
+        .byte "  ",221," ",COL_RED,182,RVS_ON,"F5",RVS_OFF,161,COL_BLACK,"BLK5   [ ] ",COL_BLUE,221,13
+        .byte "  ",221," ",COL_RED,182,RVS_ON,"F6",RVS_OFF,161,COL_BLACK,"I/O23  [ ] ",COL_BLUE,221,13
+        .byte "  ",221," ",COL_RED,182,RVS_ON,"F7",RVS_OFF,161,COL_BLACK,"Wedge  [ ] ",COL_BLUE,221,13
+        .byte "  ",221," ",COL_RED,182,RVS_ON,"F8",RVS_OFF,161,COL_BLACK
+        .ifdef ELOAD
+          .byte "ELoad+"
+        .else
+          .byte "SJ20  "
+        .endif
+        .byte " [ ] ",COL_BLUE,221,13
+        .byte "  ",221,"                ",221,13
+
+        .byte "  ",171,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,179,13
+        .byte "  ",221," Press ",COL_RED, 182,RVS_ON, "RETURN", RVS_OFF,161,COL_BLUE," ",221,13
+        .byte "  ",221,"   to reboot    ",221,13
+        .byte "  ",173,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,189
+        .byte COL_RED,0
+
+main:
         sei
-        lda     $9f55           ; Re-enable the UltiMem registers
-        lda     $9faa           ; if they were disabled previously.
-        lda     $9f01
+        lda     $9F55           ; Re-enable the UltiMem registers
+        lda     $9FAA           ; if they were disabled previously.
+        lda     $9F01
 
         lda     #ULTIMEM_LED_MASK
         sta     ULTIMEM_CONTROL
@@ -96,11 +143,6 @@ PETSCII_QUOTE = 34
         ldx     #>$0001
         sta     ULTIMEM_RAM_BANK
         stx     ULTIMEM_RAM_BANK+1
-
-        lda     #<$0002
-        ldx     #>$0002
-        sta     ULTIMEM_IO_BANK
-        stx     ULTIMEM_IO_BANK+1
 
         lda     #<$0003
         ldx     #>$0003
@@ -119,7 +161,30 @@ PETSCII_QUOTE = 34
 
         lda     #ULTIMEM_IO2_RAM_RW | ULTIMEM_IO3_RAM_RW
         sta     ULTIMEM_MEM_CONFIG1
-        jsr     copydata
+
+        .ifdef ELOAD
+        lda     #<$0006
+        ldx     #>$0006
+        sta     ULTIMEM_IO_BANK
+        stx     ULTIMEM_IO_BANK+1
+
+        lda     #<__IO23_BANK6_CODE_LOAD__ ; Source pointer
+        sta     PTR1
+        lda     #>__IO23_BANK6_CODE_LOAD__
+        sta     PTR1+1
+        jsr     copy_data
+        .endif ; ELOAD
+
+        lda     #<$0002
+        ldx     #>$0002
+        sta     ULTIMEM_IO_BANK
+        stx     ULTIMEM_IO_BANK+1
+
+        lda     #<__IO23_BANK2_CODE_LOAD__ ; Source pointer
+        sta     PTR1
+        lda     #>__IO23_BANK2_CODE_LOAD__
+        sta     PTR1+1
+        jsr     copy_data
 
         jsr     FRESTOR                 ; restore default I/O vectors
         jsr     INITVIA                 ; initialise I/O registers
@@ -228,7 +293,7 @@ mainloop:
         ldx     config+7
         beq     :+
         .ifdef ELOAD
-        jsr     _eload_init
+        jsr     eload_init
         .else
         jsr     sj20_init
         .endif
@@ -297,19 +362,14 @@ mainloop:
 .endproc
 
 
-.proc copydata
-        lda     #<__IO_2_3_CODE_LOAD__         ; Source pointer
-        sta     PTR1
-        lda     #>__IO_2_3_CODE_LOAD__
-        sta     PTR1+1
-
-        lda     #<__IO_2_3_CODE_RUN__          ; Target pointer
+.proc copy_data
+        lda     #<$9800                 ; Target pointer
         sta     PTR2
-        lda     #>__IO_2_3_CODE_RUN__
+        lda     #>$9800
         sta     PTR2+1
 
-        ldx     #<~(__IO_2_3_SIZE__ - 1)
-        lda     #>~(__IO_2_3_SIZE__ - 1)       ; Use -(__IO_2_3_SIZE__)
+        ldx     #<~($0800-15 - 1)
+        lda     #>~($0800-15 - 1)       ; Size
         sta     TMP1
         ldy     #$00
 
@@ -336,44 +396,7 @@ config:
 
 ;------------------------------------------------------------------------------
 
-banner:
-        .byte 14,RVS_ON,COL_BLUE
-        .byte 176,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,174
-        .byte 221,COL_RED,"     ULTICONFIG     ",COL_BLUE,221
-        .byte 173,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,189
-        .byte 13,13,COL_BLUE
-
-        .byte "  ",176,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,174,13
-        .byte "  ",221,"    Select      ",221,13
-        .byte "  ",221," Configuration: ",221,13
-        .byte "  ",171,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,179,13
-        .byte "  ",221,"                ",221,13
-
-        .byte "  ",221," ",COL_RED,182,RVS_ON,"F1",RVS_OFF,161,COL_BLACK,"RAM123 [ ] ",COL_BLUE,221,13
-        .byte "  ",221," ",COL_RED,182,RVS_ON,"F2",RVS_OFF,161,COL_BLACK,"BLK1   [ ] ",COL_BLUE,221,13
-        .byte "  ",221," ",COL_RED,182,RVS_ON,"F3",RVS_OFF,161,COL_BLACK,"BLK2   [ ] ",COL_BLUE,221,13
-        .byte "  ",221," ",COL_RED,182,RVS_ON,"F4",RVS_OFF,161,COL_BLACK,"BLK3   [ ] ",COL_BLUE,221,13
-        .byte "  ",221," ",COL_RED,182,RVS_ON,"F5",RVS_OFF,161,COL_BLACK,"BLK5   [ ] ",COL_BLUE,221,13
-        .byte "  ",221," ",COL_RED,182,RVS_ON,"F6",RVS_OFF,161,COL_BLACK,"I/O23  [ ] ",COL_BLUE,221,13
-        .byte "  ",221," ",COL_RED,182,RVS_ON,"F7",RVS_OFF,161,COL_BLACK,"Wedge  [ ] ",COL_BLUE,221,13
-        .byte "  ",221," ",COL_RED,182,RVS_ON,"F8",RVS_OFF,161,COL_BLACK
-        .ifdef ELOAD
-          .byte "ELoad+"
-        .else
-          .byte "SJ20  "
-        .endif
-        .byte " [ ] ",COL_BLUE,221,13
-        .byte "  ",221,"                ",221,13
-
-        .byte "  ",171,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,179,13
-        .byte "  ",221," Press ",COL_RED, 182,RVS_ON, "RETURN", RVS_OFF,161,COL_BLUE," ",221,13
-        .byte "  ",221,"   to reboot    ",221,13
-        .byte "  ",173,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,189
-        .byte COL_RED,0
-
-;------------------------------------------------------------------------------
-
-        .segment "IO_2_3_CODE"
+        .segment "IO23_BANK2_CODE"
 
         jsr     fkey_install
         jsr     miniwedge_install
@@ -381,11 +404,45 @@ banner:
         ldy     #>miniwedge_banner
         jsr     PTRSTR
         .ifdef ELOAD
-        jsr     _eload_init
+        jsr     eload_init
         .else
         jsr     sj20_init
         .endif
         rts
+
+        .ifdef ELOAD
+eload_init:
+        lda     #<do_eload_load
+        sta     $0330
+        lda     #>do_eload_load
+        sta     $0331
+        rts
+
+do_eload_load:
+        pha
+
+        sei
+        jsr     miniwedge_uninstall
+        jsr     fkey_uninstall
+
+        lda     ULTIMEM_MEM_CONFIG1
+        ora     #ULTIMEM_IO2_RAM_RW | ULTIMEM_IO3_RAM_RW
+        sta     ULTIMEM_MEM_CONFIG1
+
+        lda     #<$0006
+        sta     ULTIMEM_IO_BANK
+
+        .byte $ea,$ea,$ea,$ea,$ea,$ea,$ea,$ea,$ea,$ea,$ea,$ea,$ea,$ea,$ea
+
+        lda     ULTIMEM_MEM_CONFIG1
+        and     #%00101011
+        sta     ULTIMEM_MEM_CONFIG1
+
+        pla
+        plp
+        rts
+
+        .endif ; ELOAD
 
 ;------------------------------------------------------------------------------
 
@@ -421,3 +478,21 @@ keydef_f7:
         .byte 0
 keydef_f8:
         .byte 0
+
+;------------------------------------------------------------------------------
+
+        .ifdef ELOAD
+
+        .segment "IO23_BANK6_CODE"
+
+        .byte $18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18
+        .byte $18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18
+
+        pla
+        jsr     eload_load
+        php
+        pha
+        lda     #<$0002
+        sta     ULTIMEM_IO_BANK
+
+        .endif ; ELOAD
