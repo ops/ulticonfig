@@ -6,10 +6,15 @@
 
 PROGRAM_BASE = ulticonfig
 PROGRAM_SUFFIX = prg
-PROGRAM := $(PROGRAM_BASE)
-
-MODEL ?= pal
+PROGRAM = $(PROGRAM_BASE)
 CONFIG = $(PROGRAM_BASE).cfg
+
+ulticonfig_ntsc ?= 0
+ifeq ($(ulticonfig_ntsc),1)
+  ASFLAGS += -DULTICONFIG_NTSC
+  MODEL := ntsc
+endif
+MODEL ?= pal
 
 AS := ca65
 CC := ld65
@@ -46,9 +51,6 @@ $(PROGRAM).$(PROGRAM_SUFFIX): $(PROGRAM)
 	exomizer sfx $(START_ADDR) -t 20 -o $@ -q $(PROGRAM)
 
 $(PROGRAM): $(OBJECTS)
-
-zip:
-	zip ulticonfig-v1.2-$(MODEL).zip $(PROGRAM).prg
 
 clean:
 	$(RM) $(OBJECTS)

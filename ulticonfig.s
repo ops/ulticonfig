@@ -9,6 +9,7 @@
         .include "cbm_kernal.inc"
         .include "vic20.inc"
         .include "ultimem.inc"
+        .include "version.inc"
 
 READY     := $C474
 PRNTCRLF  := $CAD7
@@ -66,12 +67,12 @@ PETSCII_QUOTE = 34
         .import sj20_init
         .import eload_load
 
-        .import __IO23_BANK2_CODE_SIZE__
         .import __IO23_BANK2_CODE_LOAD__
-        .import __IO23_BANK2_CODE_RUN__
-        .import __IO23_BANK6_CODE_SIZE__
+        .import __IO23_BANK2_START__
+        .import __IO23_BANK2_LAST__
         .import __IO23_BANK6_CODE_LOAD__
-        .import __IO23_BANK6_CODE_RUN__
+        .import __IO23_BANK6_START__
+        .import __IO23_BANK6_LAST__
 
         ; Used by ELoad+
         ptr1 = $ae
@@ -90,8 +91,7 @@ PETSCII_QUOTE = 34
 
         jmp     main
 
-banner:
-        .byte 14,RVS_ON,COL_BLUE
+banner: .byte 14,RVS_ON,COL_BLUE
         .byte 176,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,174
         .byte 221,COL_RED,"     ULTICONFIG     ",COL_BLUE,221
         .byte 173,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,189
@@ -121,8 +121,15 @@ banner:
 
         .byte "  ",171,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,179,13
         .byte "  ",221," Press ",COL_RED, 182,RVS_ON, "RETURN", RVS_OFF,161,COL_BLUE," ",221,13
-        .byte "  ",221,"   to reboot    ",221,13
-        .byte "  ",173,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,192,189
+        .byte "  ",221," to reboot.     ",221,13
+        .byte "  ",173,192,192,192,192,192,192,192,192,192,192,192,192
+        .byte ULTICONFIG_VERSION_MAJOR,".",ULTICONFIG_VERSION_MINOR
+        .ifdef ULTICONFIG_NTSC
+          .byte "N"
+        .else
+          .byte "P"
+        .endif
+        .byte 189
         .byte COL_RED,0
 
 main:
@@ -168,10 +175,15 @@ main:
         sta     ULTIMEM_IO_BANK
         stx     ULTIMEM_IO_BANK+1
 
-        lda     #<__IO23_BANK6_CODE_LOAD__ ; Source pointer
+        ; Source pointer
+        lda     #<__IO23_BANK6_CODE_LOAD__
         sta     PTR1
         lda     #>__IO23_BANK6_CODE_LOAD__
         sta     PTR1+1
+        ; Size
+        ldx     #<~(__IO23_BANK6_LAST__-__IO23_BANK6_START__)
+        lda     #>~(__IO23_BANK6_LAST__-__IO23_BANK6_START__)
+        sta     TMP1
         jsr     copy_data
         .endif ; ELOAD
 
@@ -180,10 +192,15 @@ main:
         sta     ULTIMEM_IO_BANK
         stx     ULTIMEM_IO_BANK+1
 
-        lda     #<__IO23_BANK2_CODE_LOAD__ ; Source pointer
+        ; Source pointer
+        lda     #<__IO23_BANK2_CODE_LOAD__
         sta     PTR1
         lda     #>__IO23_BANK2_CODE_LOAD__
         sta     PTR1+1
+        ; Size
+        ldx     #<~(__IO23_BANK2_LAST__-__IO23_BANK2_START__)
+        lda     #>~(__IO23_BANK2_LAST__-__IO23_BANK2_START__)
+        sta     TMP1
         jsr     copy_data
 
         jsr     FRESTOR                 ; restore default I/O vectors
@@ -368,9 +385,6 @@ mainloop:
         lda     #>$9800
         sta     PTR2+1
 
-        ldx     #<~($0800-15 - 1)
-        lda     #>~($0800-15 - 1)       ; Size
-        sta     TMP1
         ldy     #$00
 
 ; Copy loop
@@ -395,6 +409,7 @@ config:
 
 
 ;------------------------------------------------------------------------------
+
 
         .segment "IO23_BANK2_CODE"
 
@@ -444,7 +459,6 @@ do_eload_load:
 
         .endif ; ELOAD
 
-;------------------------------------------------------------------------------
 
 keydef_f1:
         .byte PETSCII_CR,PETSCII_CRSR_UP,PETSCII_CRSR_UP,"@    ",PETSCII_CRSR_RIGHT,PETSCII_INSERT,PETSCII_INSERT,PETSCII_INSERT,"cd:",255
@@ -479,7 +493,9 @@ keydef_f7:
 keydef_f8:
         .byte 0
 
+
 ;------------------------------------------------------------------------------
+
 
         .ifdef ELOAD
 
