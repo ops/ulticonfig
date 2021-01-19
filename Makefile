@@ -56,5 +56,5 @@ clean:
 	$(RM) $(OBJECTS)
 	$(RM) $(PROGRAM).$(PROGRAM_SUFFIX)
 	$(RM) $(PROGRAM)
-	$(RM) *.zip *.map
+	$(RM) *.map
 	$(RM) *~
