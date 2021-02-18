@@ -3,7 +3,7 @@
 ;;;
 ;;; September 2020 ops
 ;;;
-;;; Last modification January 2021
+;;; Last modification February 2021
 ;;;
 
         .include "cbm_kernal.inc"
@@ -447,7 +447,7 @@ do_eload_load:
         lda     #<$0006
         sta     ULTIMEM_IO_BANK
 
-        .byte   $ea,$ea,$ea,$ea,$ea,$ea,$ea,$ea,$ea,$ea,$ea
+        .byte   0,0,0,0,0,0,0,0,0,0,0
 
         lda     ULTIMEM_MEM_CONFIG1
         and     #%00101011
@@ -501,10 +501,10 @@ keydef_f8:
 
         .segment "IO23_BANK6_CODE"
 
-        .byte   $18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18
-        .byte   $18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18
-        .byte   $18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18
-        .byte   $18,$18,$18,$18,$18,$18,$18,$18,$18,$18
+        .byte   0,0,0,0,0,0,0,0,0,0,0,0,0
+        .byte   0,0,0,0,0,0,0,0,0,0,0,0,0
+        .byte   0,0,0,0,0,0,0,0,0,0,0,0,0
+        .byte   0,0,0,0,0,0,0,0,0,0
 
         pla
         jsr     eload_load
