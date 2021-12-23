@@ -25,6 +25,8 @@ INITVIA   := $FDF9
 PTR1       = $FA
 PTR2       = $FC
 TMP1       = $FE
+FREEBANK   = $FF
+BNK        = $F8
 
 KEY_F1     = $85
 KEY_F3     = $86
@@ -138,43 +140,43 @@ main:
         lda     $9FAA           ; if they were disabled previously.
         lda     $9F01
 
-        lda     #ULTIMEM_LED_MASK
-        sta     ULTIMEM_CONTROL
+        lda     #%11000000
+        sta     ULTIMEM_MEM_CONFIG2
+        lda     #0
+        sta     FREEBANK
 
-        lda     #<$0000
-        ldx     #>$0000
-        sta     ULTIMEM_BLK5_BANK
-        stx     ULTIMEM_BLK5_BANK+1
-
-        lda     #<$0001
-        ldx     #>$0001
+        jsr     find_flawless_bank
+        ldx     #0
         sta     ULTIMEM_RAM_BANK
         stx     ULTIMEM_RAM_BANK+1
 
-        lda     #<$0003
-        ldx     #>$0003
+        jsr     find_flawless_bank
+        sta     ULTIMEM_IO_BANK
+        stx     ULTIMEM_IO_BANK+1
+
+        jsr     find_flawless_bank
         sta     ULTIMEM_BLK1_BANK
         stx     ULTIMEM_BLK1_BANK+1
 
-        lda     #<$0004
-        ldx     #>$0004
+        jsr     find_flawless_bank
         sta     ULTIMEM_BLK2_BANK
         stx     ULTIMEM_BLK2_BANK+1
 
-        lda     #<$0005
-        ldx     #>$0005
+        jsr     find_flawless_bank
         sta     ULTIMEM_BLK3_BANK
         stx     ULTIMEM_BLK3_BANK+1
+
+        jsr     find_flawless_bank
+        sta     ULTIMEM_BLK5_BANK
+        stx     ULTIMEM_BLK5_BANK+1
 
         lda     #ULTIMEM_IO2_RAM_RW | ULTIMEM_IO3_RAM_RW
         sta     ULTIMEM_MEM_CONFIG1
 
-        .ifdef ELOAD
-        lda     #<$0006
-        ldx     #>$0006
-        sta     ULTIMEM_IO_BANK
-        stx     ULTIMEM_IO_BANK+1
+        lda     #ULTIMEM_LED_MASK
+        sta     ULTIMEM_CONTROL
 
+        .ifdef ELOAD
         ; Source pointer
         lda     #<__IO23_BANK6_CODE_LOAD__
         sta     PTR1
@@ -186,11 +188,6 @@ main:
         sta     TMP1
         jsr     copy_data
         .endif ; ELOAD
-
-        lda     #<$0002
-        ldx     #>$0002
-        sta     ULTIMEM_IO_BANK
-        stx     ULTIMEM_IO_BANK+1
 
         ; Source pointer
         lda     #<__IO23_BANK2_CODE_LOAD__
@@ -407,6 +404,74 @@ mainloop:
 config:
         .byte 0,1,1,0,0,0,1,1
 
+.proc find_flawless_bank
+        lda     FREEBANK
+        lda     #$00
+        sta     PTR1
+        lda     #$A0
+        sta     PTR1+1
+
+l2:     lda     #$00
+        sta     PTR1
+        lda     #$A0
+        sta     PTR1+1
+        lda     BNK
+        sta     $9ffe
+        lda     BNK+1
+        sta     $9fff
+
+l:  ldy #0
+        lda     BNK
+        sta     (PTR1),y
+        iny
+        lda     BNK+1
+        sta     (PTR1),y
+        inc     PTR1
+        inc     PTR1
+        bne     l
+        inc     PTR1+1
+        lda     PTR1+1
+        cmp     #$C0
+        bne     l
+
+l4: lda #$00
+        sta     PTR1
+        lda     #$A0
+        sta     PTR1+1
+        lda     BNK
+        sta     $9ffe
+        lda     BNK+1
+        sta     $9fff
+
+l3: ldy #0
+        lda     BNK
+        cmp     (PTR1),y
+        bne     error
+        iny
+        lda     BNK+1
+        cmp     (PTR1),y
+        bne     error
+        inc     PTR1
+        inc     PTR1
+        bne     l3
+        inc     PTR1+1
+        lda     PTR1+1
+        cmp     #$c0
+        bne     l3
+
+        lda     FREEBANK
+        inc     FREEBANK
+        rts
+
+error:
+        inc     FREEBANK
+        lda     FREEBANK
+        cmp     #$80
+        bne     find_flawless_bank
+        lda     #<txt_not_enough_ram
+        ldx     #>txt_not_enough_ram
+        jmp     $cb1e
+.endproc
 
 ;------------------------------------------------------------------------------
 
@@ -493,6 +558,8 @@ keydef_f7:
 keydef_f8:
         .byte 0
 
+txt_not_enough_ram:
+        .byte "NOT ENOUGH WORKING RAM FOUND.", 0
 
 ;------------------------------------------------------------------------------
 
