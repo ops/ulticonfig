@@ -3,7 +3,7 @@
 ;;;
 ;;; September 2020 ops
 ;;;
-;;; Last modification February 2021
+;;; Last modification January 2022
 ;;;
 
         .include "cbm_kernal.inc"
@@ -54,10 +54,6 @@ PETSCII_INSERT = 148
 PETSCII_DEL = 20
 PETSCII_QUOTE = 34
 
-        .export __LOADADDR__: absolute = 1
-        .segment "LOADADDR"
-        .addr   *+2
-
         .import miniwedge_install
         .import miniwedge_uninstall
         .import miniwedge_banner
@@ -86,6 +82,11 @@ PETSCII_QUOTE = 34
         .export keydef_f6
         .export keydef_f7
         .export keydef_f8
+
+        .export __LOADADDR__: absolute = 1
+
+        .segment "LOADADDR"
+        .addr *+2
 
         .segment "MENUCODE"
 
@@ -488,7 +489,7 @@ keydef_f6:
         .byte "@",PETSCII_QUOTE,"cd//",PETSCII_QUOTE,255
         .byte 0
 keydef_f7:
-        .byte 147, "$",255
+        .byte 147,"@",PETSCII_QUOTE,"$",PETSCII_QUOTE,255
         .byte 0
 keydef_f8:
         .byte 0
