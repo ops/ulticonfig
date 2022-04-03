@@ -42,6 +42,6 @@ See UltiConfig in action!
 
 # Releases
 
-## Release v1.2 (2021-02-18)
+## Release v1.3 (2022-04-03)
 
-Download [ulticonfig-v1.2.zip](releases/ulticonfig-v1.2.zip)
+Download [ulticonfig-v1.3.zip](releases/ulticonfig-v1.3.zip)
