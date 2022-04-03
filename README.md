@@ -17,7 +17,8 @@ For more information about UltiMem visit
 |---|---|
 |@|Display current drive error status|
 |@"CMD"|Execute a disk drive command CMD|
-|$|Display the disk directory|
+|@"$"|Display the disk directory|
+|@"$:PATTERN"|Display the disk directory of files matching PATTERN|
 
 
 ## Function keys
