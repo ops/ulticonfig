@@ -9,7 +9,7 @@ For more information about UltiMem visit
 - DOS wedge ([miniwedge](https://github.com/ops/miniwedge))
 - JiffyDOS speeder ([sj20](https://github.com/ops/sj20))
 
-![START_SCREEN](screenshot-01.png)
+![START_SCREEN](screenshot-02.png)
 
 ## Wedge Commands
 
